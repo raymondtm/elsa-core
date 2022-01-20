@@ -4,11 +4,11 @@ WORKDIR /app
 COPY /src .
 
 WORKDIR /app/designer/elsa-workflows-studio
-RUN npm install --force
+RUN npm install --force --registry=https://registry.npm.taobao.org/
 RUN npm run build
 
 WORKDIR /app/designer/bindings/aspnet/Elsa.Designer.Components.Web
-RUN npm install --force
+RUN npm install --force --registry=https://registry.npm.taobao.org/
 RUN npm run build
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim-amd64 AS build
