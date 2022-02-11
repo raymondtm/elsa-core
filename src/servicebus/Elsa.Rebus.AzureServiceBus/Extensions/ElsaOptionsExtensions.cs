@@ -3,6 +3,7 @@ using Azure.Core;
 using Elsa.Options;
 using Elsa.Services.Messaging;
 using Rebus.Config;
+using Rebus.Retry.Simple;
 
 namespace Elsa.Rebus.AzureServiceBus
 {
@@ -46,7 +47,7 @@ namespace Elsa.Rebus.AzureServiceBus
 
                     if (context.AutoDeleteOnIdle)
                         transport.SetAutoDeleteOnIdle(TimeSpan.FromMinutes(5));
-                    
+
                     configureTransport?.Invoke(new ConfigureTransportContext(context, transport));
                 });
         }

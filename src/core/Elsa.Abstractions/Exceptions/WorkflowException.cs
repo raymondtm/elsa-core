@@ -1,4 +1,5 @@
 using System;
+using Rebus.Exceptions;
 
 namespace Elsa.Exceptions
 {
