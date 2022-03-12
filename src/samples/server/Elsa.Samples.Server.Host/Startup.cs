@@ -1,5 +1,7 @@
+using Elsa.Models;
 using Elsa.Providers.Workflows;
 using Elsa.Retention.Extensions;
+using Elsa.Retention.Filters;
 using Elsa.WorkflowTesting.Api.Extensions;
 using Hangfire;
 using Hangfire.SQLite;
@@ -27,8 +29,6 @@ namespace Elsa.Samples.Server.Host
         public void ConfigureServices(IServiceCollection services)
         {
             var elsaSection = Configuration.GetSection("Elsa");
-
-            services.AddControllers();
 
             // TODO: Determine startup types based on project references, similar to Orchard Core's Targets.props for Applications and Modules.
             // Note that simply loading all referenced assemblies will not include assemblies where no types have been referenced in this project (due to assembly trimming?).
@@ -84,13 +84,23 @@ namespace Elsa.Samples.Server.Host
                     .AddWorkflowsFrom<Startup>()
                     .AddFeatures(startups, Configuration)
                     .ConfigureWorkflowChannels(options => elsaSection.GetSection("WorkflowChannels").Bind(options))
-                    
+
                     // Optionally opt-out of indexing workflows stored in the database.
                     // These will be indexed when published/unpublished/deleted, so no need to do it during startup.
                     // Unless you have existing workflow definitions in the DB for which no triggers have yet been created.
                     .ExcludeWorkflowProviderFromStartupIndexing<DatabaseWorkflowProvider>()
                 )
-                .AddRetentionServices(options => elsaSection.GetSection("Retention").Bind(options));
+                .AddRetentionServices(options =>
+                {
+                    // Bind options from configuration.
+                    elsaSection.GetSection("Retention").Bind(options);
+
+                    // Configure a custom filter pipeline that deletes completed AND faulted workflows.
+                    options.ConfigurePipeline = pipeline => pipeline
+                        .AddFilter(new WorkflowStatusFilter(WorkflowStatus.Cancelled, WorkflowStatus.Faulted, WorkflowStatus.Finished))
+                        // Could add additional filters. For example, if there's a way to know that some workflow is a child workflow, maybe don't delete the parent.
+                        ;
+                });
 
             // Elsa API endpoints.
             services
