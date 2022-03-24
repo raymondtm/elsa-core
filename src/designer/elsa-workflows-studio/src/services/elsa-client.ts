@@ -20,7 +20,8 @@ import {
   WorkflowExecutionLogRecord,
   WorkflowInstance,
   WorkflowInstanceSummary,
-  WorkflowPersistenceBehavior, WorkflowProviderDescriptor,
+  WorkflowPersistenceBehavior,
+  WorkflowProviderDescriptor,
   WorkflowStatus,
   WorkflowStorageDescriptor
 } from "../models";
@@ -129,7 +130,8 @@ export const createElsaClient = async function (serverUrl: string): Promise<Elsa
     },
     workflowTestApi: {
       execute: async (request) => {
-        await httpClient.post<void>(`v1/workflow-test/execute`, request);
+          const response = await httpClient.post<WorkflowTestExecuteResponse>(`v1/workflow-test/execute`, request);
+          return response.data;
       },
       restartFromActivity: async (request) => {
         await httpClient.post<void>(`v1/workflow-test/restartFromActivity`, request);
@@ -354,7 +356,7 @@ export interface WorkflowDefinitionsApi {
 
 export interface WorkflowTestApi {
 
-  execute(request: WorkflowTestExecuteRequest): Promise<void>;
+  execute(request: WorkflowTestExecuteRequest): Promise<WorkflowTestExecuteResponse>;
 
   restartFromActivity(request: WorkflowTestRestartFromActivityRequest): Promise<void>;
 
@@ -480,6 +482,11 @@ export interface WorkflowTestRestartFromActivityRequest {
 
 export interface WorkflowTestStopRequest {
   workflowInstanceId: string
+}
+
+export interface WorkflowTestExecuteResponse{
+  isSuccess: boolean,
+  isAnotherInstanceRunning: boolean
 }
 
 export interface ExportWorkflowResponse {
